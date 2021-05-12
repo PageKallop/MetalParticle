@@ -14,6 +14,9 @@ class MainView: MTKView {
     
     var clearPass: MTLComputePipelineState!
     
+    @IBOutlet weak var metalView: MTKView!
+    
+    
     required init(coder: NSCoder) {
         super.init(coder: coder)
         //allows to draw to frame buffer
@@ -43,6 +46,26 @@ extension MainView {
         guard let drawable = self.currentDrawable else { return }
         
         let commandBuffer = commandQueue.makeCommandBuffer()
+        //encode compute func variables
         let computeCommandEncoder = commandBuffer?.makeComputeCommandEncoder()
+        
+        //clears
+        computeCommandEncoder?.setComputePipelineState(clearPass)
+        //sets the texture
+        computeCommandEncoder?.setTexture(drawable.texture, index: 0)
+        
+       //determine how many threads in grid
+        let w = clearPass.threadExecutionWidth
+        let h = clearPass.maxTotalThreadsPerThreadgroup / w
+        
+        var threadsPerGrid = MTLSize(width: drawable.texture.width, height: drawable.texture.height, depth: 1)
+        
+        var threadsPerThreadGroup = MTLSize(width: w, height: h, depth: 1)
+        
+        computeCommandEncoder?.dispatchThreads(threadsPerGrid, threadsPerThreadgroup: threadsPerThreadGroup)
+        
+        computeCommandEncoder?.endEncoding()
+        commandBuffer?.present(drawable)
+        commandBuffer?.commit()
     }
 }
