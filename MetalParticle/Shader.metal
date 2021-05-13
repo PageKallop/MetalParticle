@@ -34,6 +34,10 @@ kernel void draw_dots_func(device Particle *particles [[ buffer(0) ]],
     float2 velocity = particle.velocity;
     half4 color = half4(particle.color.r, particle.color.g, particle.color.b, 1);
     
+    particle.position += velocity;
+    
+    particles[id] = particle; 
+    
     //set position
     uint2 texturePosition = uint2(position.x, position.y);
     tex.write(color, texturePosition);
