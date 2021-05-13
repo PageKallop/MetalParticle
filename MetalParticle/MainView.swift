@@ -16,6 +16,10 @@ struct Particle {
 
 class MainView: MTKView {
     
+
+    @IBOutlet weak var txtDotCount: UITextField!
+    
+    
     var commandQueue: MTLCommandQueue!
     
     //pipeline states
@@ -29,10 +33,13 @@ class MainView: MTKView {
         return Float(self.bounds.width)
     }
     
-    var particleCount: Int = 100 
+    var particleCount: Int = 1000
+    
+
     
     @IBOutlet weak var metalView: MTKView!
     
+ 
     
     required init(coder: NSCoder) {
         super.init(coder: coder)
@@ -83,6 +90,16 @@ class MainView: MTKView {
         
         particleBuffer = device?.makeBuffer(bytes: particles, length: MemoryLayout<Particle>.stride * particleCount, options: [])
     }
+    
+    
+    @IBAction func buttonUpdate(_ sender: UIButton) {
+        
+        let value = Int(txtDotCount.text ?? "100")
+        particleCount = value!
+        createParticles()
+    
+        
+    }
 
 }
 
@@ -116,8 +133,8 @@ extension MainView {
         computeCommandEncoder?.setComputePipelineState(drawDotPass)
         computeCommandEncoder?.setBuffer(particleBuffer, offset: 0, index: 0)
         //update threads per grid
-        threadsPerGrid = MTLSize(width: w, height: 1, depth: 1)
-        threadsPerThreadGroup = MTLSize(width: particleCount, height: 1, depth: 1)
+        threadsPerGrid = MTLSize(width: particleCount, height: 1, depth: 1)
+        threadsPerThreadGroup = MTLSize(width: w, height: 1, depth: 1)
         computeCommandEncoder?.dispatchThreads(threadsPerGrid, threadsPerThreadgroup: threadsPerThreadGroup)
         
         computeCommandEncoder?.endEncoding()

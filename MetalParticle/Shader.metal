@@ -27,6 +27,9 @@ kernel void draw_dots_func(device Particle *particles [[ buffer(0) ]],
                            texture2d<half, access::write> tex [[ texture(0) ]],
                            uint id [[ thread_position_in_grid]]){
     
+    float width = tex.get_width();
+    float height = tex.get_height();
+    
     Particle particle;
     particle = particles[id];
     
@@ -34,9 +37,14 @@ kernel void draw_dots_func(device Particle *particles [[ buffer(0) ]],
     float2 velocity = particle.velocity;
     half4 color = half4(particle.color.r, particle.color.g, particle.color.b, 1);
     
-    particle.position += velocity;
+    position += velocity;
+    particle.position = position;
+    particle.velocity = velocity;
     
-    particles[id] = particle; 
+    if(position.x < 0 || position.x > width) velocity.x *= -1;
+    if(position.y < 0 || position.y > height) velocity.y *= -1;
+    
+    particles[id] = particle;
     
     //set position
     uint2 texturePosition = uint2(position.x, position.y);
